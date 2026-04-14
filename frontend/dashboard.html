@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SecureGuard - Dashboard</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="logo">
+            <h1>🛡️ SecureGuard</h1>
+        </div>
+        <nav class="nav-menu">
+            <a href="dashboard.html" class="nav-item active">📊 Dashboard</a>
+            <a href="geo.html" class="nav-item">🌍 Geographic Analysis</a>
+            <a href="logs.html" class="nav-item">📋 Login Logs</a>
+            <a href="bloom.html" class="nav-item">🔍 Bloom Filter</a>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="header">
+            <h1>Dashboard</h1>
+            <p>Real-time security analytics and monitoring</p>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="stats-grid" id="statsGrid">
+            <div class="loading">
+                <div class="spinner"></div>
+                <p>Loading statistics...</p>
+            </div>
+        </div>
+
+        <!-- Charts -->
+        <div class="chart-grid">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Login Timeline</h2>
+                    <p class="card-subtitle">Success vs Failed logins over time</p>
+                </div>
+                <div class="chart-container">
+                    <canvas id="timelineChart"></canvas>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Login Status Distribution</h2>
+                    <p class="card-subtitle">Overall success rate</p>
+                </div>
+                <div class="chart-container">
+                    <canvas id="statusChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Alerts -->
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">Recent Security Alerts</h2>
+                <p class="card-subtitle">Latest security events and anomalies</p>
+            </div>
+            <div class="alert-list" id="alertsList">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Loading alerts...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Logs -->
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">Recent Login Activity</h2>
+                <p class="card-subtitle">Latest 20 login attempts</p>
+            </div>
+            <div class="table-container">
+                <table id="recentLogsTable">
+                    <thead>
+                        <tr>
+                            <th>Username</th>
+                            <th>IP Address</th>
+                            <th>Country</th>
+                            <th>City</th>
+                            <th>Status</th>
+                            <th>Timestamp</th>
+                        </tr>
+                    </thead>
+                    <tbody id="recentLogsBody">
+                        <tr>
+                            <td colspan="6" class="loading">Loading recent activity...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <script src="js/api.js"></script>
+    <script src="js/charts.js"></script>
+    <script>
+        let timelineChart = null;
+        let statusChart = null;
+
+        // Load Dashboard Data
+        async function loadDashboard() {
+            try {
+                // Load Stats
+                const stats = await API.getStats();
+                displayStats(stats);
+
+                // Load Timeline
+                const timeline = await API.getTimeline();
+                displayTimeline(timeline);
+
+                // Load Alerts
+                const alerts = await API.getRecentAlerts();
+                displayAlerts(alerts.alerts);
+
+                // Load Recent Logs
+                const logs = await API.getLoginLogs({ limit: 20 });
+                displayRecentLogs(logs.logs);
+
+            } catch (error) {
+                console.error('Error loading dashboard:', error);
+                showError('statsGrid', 'Failed to load dashboard data. Make sure the backend is running.');
+            }
+        }
+
+        function displayStats(stats) {
+            const statsGrid = document.getElementById('statsGrid');
+            statsGrid.innerHTML = `
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <span class="stat-title">Total Logins</span>
+                        <div class="stat-icon" style="background-color: rgba(99, 102, 241, 0.2); color: #6366f1;">
+                            📊
+                        </div>
+                    </div>
+                    <div class="stat-value">${formatNumber(stats.total_logins)}</div>
+                    <div class="stat-change positive">
+                        ↑ ${stats.recent_logins} in last 7 days
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <span class="stat-title">Success Rate</span>
+                        <div class="stat-icon" style="background-color: rgba(16, 185, 129, 0.2); color: #10b981;">
+                            ✓
+                        </div>
+                    </div>
+                    <div class="stat-value">${stats.success_rate}%</div>
+                    <div class="stat-change positive">
+                        ${formatNumber(stats.success_logins)} successful
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <span class="stat-title">Failed Logins</span>
+                        <div class="stat-icon" style="background-color: rgba(239, 68, 68, 0.2); color: #ef4444;">
+                            ✗
+                        </div>
+                    </div>
+                    <div class="stat-value">${formatNumber(stats.failed_logins)}</div>
+                    <div class="stat-change negative">
+                        Requires attention
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <span class="stat-title">Unique Users</span>
+                        <div class="stat-icon" style="background-color: rgba(139, 92, 246, 0.2); color: #8b5cf6;">
+                            👥
+                        </div>
+                    </div>
+                    <div class="stat-value">${formatNumber(stats.unique_users)}</div>
+                    <div class="stat-change">
+                        Across ${stats.unique_countries} countries
+                    </div>
+                </div>
+            `;
+        }
+
+        function displayTimeline(timeline) {
+            // Destroy existing chart
+            if (timelineChart) {
+                timelineChart.destroy();
+            }
+
+            // Create timeline chart
+            timelineChart = createMultiLineChart(
+                'timelineChart',
+                timeline.dates,
+                timeline.success,
+                timeline.failed
+            );
+
+            // Create status pie chart
+            if (statusChart) {
+                statusChart.destroy();
+            }
+            
+            const totalSuccess = timeline.success.reduce((a, b) => a + b, 0);
+            const totalFailed = timeline.failed.reduce((a, b) => a + b, 0);
+            
+            statusChart = createPieChart(
+                'statusChart',
+                ['Success', 'Failed'],
+                [totalSuccess, totalFailed]
+            );
+        }
+
+        function displayAlerts(alerts) {
+            const alertsList = document.getElementById('alertsList');
+            
+            if (alerts.length === 0) {
+                alertsList.innerHTML = '<p class="text-muted">No recent alerts</p>';
+                return;
+            }
+
+            alertsList.innerHTML = alerts.map(alert => `
+                <div class="alert-item ${alert.severity}">
+                    <div class="alert-content">
+                        <h4>${alert.type}</h4>
+                        <p>${alert.message}</p>
+                    </div>
+                    <div class="alert-time">
+                        ${alert.timestamp}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function displayRecentLogs(logs) {
+            const tbody = document.getElementById('recentLogsBody');
+            
+            if (logs.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6">No logs found</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = logs.map(log => `
+                <tr>
+                    <td>${log.username}</td>
+                    <td>${log.ip}</td>
+                    <td>${log.country}</td>
+                    <td>${log.city}</td>
+                    <td><span class="badge ${log.status}">${log.status}</span></td>
+                    <td>${log.timestamp}</td>
+                </tr>
+            `).join('');
+        }
+
+        // Load dashboard on page load
+        window.addEventListener('DOMContentLoaded', loadDashboard);
+    </script>
+</body>
+</html>

@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SecureGuard - Bloom Filter</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="logo">
+            <h1>🛡️ SecureGuard</h1>
+        </div>
+        <nav class="nav-menu">
+            <a href="dashboard.html" class="nav-item">📊 Dashboard</a>
+            <a href="geo.html" class="nav-item">🌍 Geographic Analysis</a>
+            <a href="logs.html" class="nav-item">📋 Login Logs</a>
+            <a href="bloom.html" class="nav-item active">🔍 Bloom Filter</a>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="header">
+            <h1>Bloom Filter - IP Blacklist</h1>
+            <p>Check if an IP address is in the suspicious list</p>
+        </div>
+
+        <!-- Bloom Filter Explanation -->
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">What is a Bloom Filter?</h2>
+            </div>
+            <p style="color: var(--text-secondary); line-height: 1.8;">
+                A Bloom Filter is a space-efficient probabilistic data structure used to test whether an element is a member of a set. 
+                It can tell you with certainty that an element is <strong>NOT</strong> in the set, but can only tell you that an element 
+                <strong>MIGHT</strong> be in the set (with a small probability of false positives).
+            </p>
+            <br>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; margin-top: 1rem;">
+                <div style="padding: 1rem; background-color: var(--bg-tertiary); border-radius: 8px;">
+                    <h4 style="color: var(--success-color); margin-bottom: 0.5rem;">✓ Advantages</h4>
+                    <ul style="color: var(--text-secondary); padding-left: 1.5rem;">
+                        <li>Extremely space-efficient</li>
+                        <li>Constant time operations</li>
+                        <li>No false negatives</li>
+                    </ul>
+                </div>
+                <div style="padding: 1rem; background-color: var(--bg-tertiary); border-radius: 8px;">
+                    <h4 style="color: var(--warning-color); margin-bottom: 0.5rem;">⚠ Limitations</h4>
+                    <ul style="color: var(--text-secondary); padding-left: 1.5rem;">
+                        <li>Possible false positives</li>
+                        <li>Cannot remove elements</li>
+                        <li>Cannot list all elements</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- IP Checker -->
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">Check IP Address</h2>
+                <p class="card-subtitle">Enter an IP to check if it's in the suspicious list</p>
+            </div>
+            <div class="bloom-input">
+                <input type="text" id="ipInput" placeholder="Enter IP address (e.g., 192.168.1.1)">
+                <button class="btn btn-primary" onclick="checkIP()">Check IP</button>
+            </div>
+            <div id="bloomResult"></div>
+        </div>
+
+        <!-- Anomaly Detection Results -->
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">Anomaly Detection</h2>
+                <p class="card-subtitle">Security threats and unusual patterns</p>
+            </div>
+            <div id="anomalyContent">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Analyzing data for anomalies...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Anomaly Charts -->
+        <div class="chart-grid">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Anomaly Distribution</h2>
+                </div>
+                <div class="chart-container">
+                    <canvas id="anomalyChart"></canvas>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Severity Breakdown</h2>
+                </div>
+                <div class="chart-container">
+                    <canvas id="severityChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="js/api.js"></script>
+    <script src="js/charts.js"></script>
+    <script>
+        let anomalyChart = null;
+        let severityChart = null;
+
+        async function checkIP() {
+            const ipInput = document.getElementById('ipInput');
+            const ip = ipInput.value.trim();
+            const resultDiv = document.getElementById('bloomResult');
+
+            if (!ip) {
+                resultDiv.innerHTML = `
+                    <div class="bloom-result">
+                        <p style="color: var(--warning-color);">⚠ Please enter an IP address</p>
+                    </div>
+                `;
+                return;
+            }
+
+            // Show loading
+            resultDiv.innerHTML = `
+                <div class="bloom-result">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        <p>Checking IP address...</p>
+                    </div>
+                </div>
+            `;
+
+            try {
+                const result = await API.checkBloom(ip);
+                
+                const resultClass = result.is_suspicious ? 'found' : 'not-found';
+                const resultIcon = result.is_suspicious ? '⚠️' : '✓';
+                const resultColor = result.is_suspicious ? 'var(--danger-color)' : 'var(--success-color)';
+
+                resultDiv.innerHTML = `
+                    <div class="bloom-result ${resultClass}">
+                        <h3 style="color: ${resultColor}; margin-bottom: 1rem;">
+                            ${resultIcon} ${result.bloom_result}
+                        </h3>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                            <div>
+                                <p style="color: var(--text-muted); margin-bottom: 0.5rem;">IP Address</p>
+                                <p style="font-size: 1.1rem; font-weight: 600;"><code>${result.ip}</code></p>
+                            </div>
+                            <div>
+                                <p style="color: var(--text-muted); margin-bottom: 0.5rem;">Actual Failed Attempts</p>
+                                <p style="font-size: 1.1rem; font-weight: 600;">${result.actual_failed_attempts}</p>
+                            </div>
+                            <div>
+                                <p style="color: var(--text-muted); margin-bottom: 0.5rem;">Bloom Filter Result</p>
+                                <p style="font-size: 1.1rem; font-weight: 600;">
+                                    ${result.is_suspicious ? 'Suspicious' : 'Clean'}
+                                </p>
+                            </div>
+                        </div>
+                        <div style="margin-top: 1rem; padding: 1rem; background-color: var(--bg-tertiary); border-radius: 8px;">
+                            <p style="color: var(--text-muted); font-size: 0.875rem;">
+                                <strong>Note:</strong> ${result.note}
+                            </p>
+                        </div>
+                    </div>
+                `;
+
+            } catch (error) {
+                console.error('Error checking IP:', error);
+                resultDiv.innerHTML = `
+                    <div class="bloom-result">
+                        <p style="color: var(--danger-color);">❌ Error checking IP. Make sure the backend is running.</p>
+                    </div>
+                `;
+            }
+        }
+
+        async function loadAnomalies() {
+            try {
+                const anomalies = await API.getAnomalyDetection();
+                displayAnomalies(anomalies);
+                displayAnomalyCharts(anomalies);
+
+            } catch (error) {
+                console.error('Error loading anomalies:', error);
+                document.getElementById('anomalyContent').innerHTML = `
+                    <p style="color: var(--danger-color);">Failed to load anomaly data.</p>
+                `;
+            }
+        }
+
+        function displayAnomalies(anomalies) {
+            const content = document.getElementById('anomalyContent');
+            
+            let html = `
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+                    <div class="stat-card">
+                        <div class="stat-title">Total Anomalies</div>
+                        <div class="stat-value">${anomalies.summary.total_anomalies}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-title">Critical</div>
+                        <div class="stat-value" style="color: var(--danger-color);">${anomalies.summary.critical_count}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-title">High</div>
+                        <div class="stat-value" style="color: var(--warning-color);">${anomalies.summary.high_count}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-title">Medium</div>
+                        <div class="stat-value" style="color: var(--info-color);">${anomalies.summary.medium_count}</div>
+                    </div>
+                </div>
+            `;
+
+            // Brute Force
+            if (anomalies.brute_force.length > 0) {
+                html += `
+                    <div style="margin-bottom: 2rem;">
+                        <h3 style="margin-bottom: 1rem; color: var(--danger-color);">🔴 Brute Force Attacks</h3>
+                        <div class="alert-list">
+                            ${anomalies.brute_force.map(item => `
+                                <div class="alert-item critical">
+                                    <div class="alert-content">
+                                        <h4>IP: ${item.ip}</h4>
+                                        <p>${item.failed_attempts} failed login attempts</p>
+                                    </div>
+                                    <span class="badge ${item.severity}">${item.severity}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Impossible Travel
+            if (anomalies.impossible_travel.length > 0) {
+                html += `
+                    <div style="margin-bottom: 2rem;">
+                        <h3 style="margin-bottom: 1rem; color: var(--danger-color);">🌍 Impossible Travel Detection</h3>
+                        <div class="alert-list">
+                            ${anomalies.impossible_travel.slice(0, 5).map(item => `
+                                <div class="alert-item critical">
+                                    <div class="alert-content">
+                                        <h4>${item.username}</h4>
+                                        <p>${item.from_country} → ${item.to_country} in ${item.time_difference_hours} hours</p>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+
+            content.innerHTML = html;
+        }
+
+        function displayAnomalyCharts(anomalies) {
+            // Anomaly type distribution
+            if (anomalyChart) anomalyChart.destroy();
+            
+            anomalyChart = createPieChart(
+                'anomalyChart',
+                ['Brute Force', 'Impossible Travel', 'Off-Hours', 'Geographic', 'Rapid Attempts'],
+                [
+                    anomalies.brute_force.length,
+                    anomalies.impossible_travel.length,
+                    anomalies.off_hours_login.length,
+                    anomalies.geographic_anomaly.length,
+                    anomalies.rapid_attempts.length
+                ]
+            );
+
+            // Severity breakdown
+            if (severityChart) severityChart.destroy();
+            
+            severityChart = createDoughnutChart(
+                'severityChart',
+                ['Critical', 'High', 'Medium', 'Low'],
+                [
+                    anomalies.summary.critical_count,
+                    anomalies.summary.high_count,
+                    anomalies.summary.medium_count,
+                    anomalies.off_hours_login.length
+                ]
+            );
+        }
+
+        // Add enter key support
+        document.addEventListener('DOMContentLoaded', () => {
+            loadAnomalies();
+            
+            document.getElementById('ipInput').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    checkIP();
+                }
+            });
+        });
+    </script>
+</body>
+</html>

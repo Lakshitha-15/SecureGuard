@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SecureGuard - Geographic Analysis</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="logo">
+            <h1>🛡️ SecureGuard</h1>
+        </div>
+        <nav class="nav-menu">
+            <a href="dashboard.html" class="nav-item">📊 Dashboard</a>
+            <a href="geo.html" class="nav-item active">🌍 Geographic Analysis</a>
+            <a href="logs.html" class="nav-item">📋 Login Logs</a>
+            <a href="bloom.html" class="nav-item">🔍 Bloom Filter</a>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="header">
+            <h1>Geographic Analysis</h1>
+            <p>Login patterns across countries and cities</p>
+        </div>
+
+        <!-- Charts -->
+        <div class="chart-grid">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Top Countries by Login Count</h2>
+                    <p class="card-subtitle">Countries with most login activity</p>
+                </div>
+                <div class="chart-container">
+                    <canvas id="countryChart"></canvas>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Success vs Failed by Country</h2>
+                    <p class="card-subtitle">Login status distribution</p>
+                </div>
+                <div class="chart-container">
+                    <canvas id="statusByCountryChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Country Statistics Table -->
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">Country Statistics</h2>
+                <p class="card-subtitle">Detailed breakdown by country</p>
+            </div>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Country</th>
+                            <th>Total Logins</th>
+                            <th>Success</th>
+                            <th>Failed</th>
+                            <th>Success Rate</th>
+                            <th>Unique Users</th>
+                        </tr>
+                    </thead>
+                    <tbody id="countryStatsBody">
+                        <tr>
+                            <td colspan="6" class="loading">Loading country statistics...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- City Statistics Table -->
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">Top Cities</h2>
+                <p class="card-subtitle">Most active cities</p>
+            </div>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>City</th>
+                            <th>Country</th>
+                            <th>Total Logins</th>
+                            <th>Success</th>
+                            <th>Failed</th>
+                        </tr>
+                    </thead>
+                    <tbody id="cityStatsBody">
+                        <tr>
+                            <td colspan="5" class="loading">Loading city statistics...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <script src="js/api.js"></script>
+    <script src="js/charts.js"></script>
+    <script>
+        let countryChart = null;
+        let statusByCountryChart = null;
+
+        // Load Geographic Analysis Data
+        async function loadGeoAnalysis() {
+            try {
+                const data = await API.getGeoAnalysis();
+                
+                displayCountryChart(data.top_countries);
+                displayStatusByCountryChart(data.status_by_country);
+                displayCountryStats(data.country_stats);
+                displayCityStats(data.city_stats);
+
+            } catch (error) {
+                console.error('Error loading geo analysis:', error);
+                showError('countryStatsBody', 'Failed to load geographic data. Make sure the backend is running.');
+            }
+        }
+
+        function displayCountryChart(topCountries) {
+            if (countryChart) {
+                countryChart.destroy();
+            }
+
+            countryChart = createBarChart(
+                'countryChart',
+                topCountries.countries,
+                topCountries.counts,
+                'Login Count'
+            );
+        }
+
+        function displayStatusByCountryChart(statusByCountry) {
+            if (statusByCountryChart) {
+                statusByCountryChart.destroy();
+            }
+
+            // Get top 5 countries
+            const countries = Object.keys(statusByCountry).slice(0, 5);
+            const successData = countries.map(c => statusByCountry[c].success);
+            const failedData = countries.map(c => statusByCountry[c].failed);
+
+            const ctx = document.getElementById('statusByCountryChart');
+            statusByCountryChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: countries,
+                    datasets: [
+                        {
+                            label: 'Success',
+                            data: successData,
+                            backgroundColor: '#10b981'
+                        },
+                        {
+                            label: 'Failed',
+                            data: failedData,
+                            backgroundColor: '#ef4444'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: { color: '#cbd5e1' }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            stacked: false,
+                            ticks: { color: '#cbd5e1' },
+                            grid: { color: 'rgba(51, 65, 85, 0.5)' }
+                        },
+                        y: {
+                            stacked: false,
+                            ticks: { color: '#cbd5e1' },
+                            grid: { color: 'rgba(51, 65, 85, 0.5)' }
+                        }
+                    }
+                }
+            });
+        }
+
+        function displayCountryStats(countryStats) {
+            const tbody = document.getElementById('countryStatsBody');
+            
+            tbody.innerHTML = countryStats.map(stat => `
+                <tr>
+                    <td><strong>${stat.country}</strong></td>
+                    <td>${formatNumber(stat.total_logins)}</td>
+                    <td><span class="badge success">${formatNumber(stat.success_logins)}</span></td>
+                    <td><span class="badge failed">${formatNumber(stat.failed_logins)}</span></td>
+                    <td>${stat.success_rate}%</td>
+                    <td>${formatNumber(stat.unique_users)}</td>
+                </tr>
+            `).join('');
+        }
+
+        function displayCityStats(cityStats) {
+            const tbody = document.getElementById('cityStatsBody');
+            
+            tbody.innerHTML = cityStats.map(stat => `
+                <tr>
+                    <td><strong>${stat.city}</strong></td>
+                    <td>${stat.country}</td>
+                    <td>${formatNumber(stat.total_logins)}</td>
+                    <td><span class="badge success">${formatNumber(stat.success_logins)}</span></td>
+                    <td><span class="badge failed">${formatNumber(stat.failed_logins)}</span></td>
+                </tr>
+            `).join('');
+        }
+
+        // Load on page load
+        window.addEventListener('DOMContentLoaded', loadGeoAnalysis);
+    </script>
+</body>
+</html>

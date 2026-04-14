@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SecureGuard - Login Logs</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="logo">
+            <h1>🛡️ SecureGuard</h1>
+        </div>
+        <nav class="nav-menu">
+            <a href="dashboard.html" class="nav-item">📊 Dashboard</a>
+            <a href="geo.html" class="nav-item">🌍 Geographic Analysis</a>
+            <a href="logs.html" class="nav-item active">📋 Login Logs</a>
+            <a href="bloom.html" class="nav-item">🔍 Bloom Filter</a>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="header">
+            <h1>Login Logs</h1>
+            <p>Search and filter login activities</p>
+        </div>
+
+        <!-- Filters -->
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">Filters</h2>
+            </div>
+            <div class="filters">
+                <div class="filter-group">
+                    <label for="searchUsername">Username</label>
+                    <input type="search" id="searchUsername" placeholder="Search by username...">
+                </div>
+                <div class="filter-group">
+                    <label for="filterCountry">Country</label>
+                    <select id="filterCountry">
+                        <option value="">All Countries</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="filterStatus">Status</label>
+                    <select id="filterStatus">
+                        <option value="">All Status</option>
+                        <option value="success">Success</option>
+                        <option value="failed">Failed</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="filterLimit">Limit</label>
+                    <select id="filterLimit">
+                        <option value="50">50</option>
+                        <option value="100" selected>100</option>
+                        <option value="200">200</option>
+                        <option value="500">500</option>
+                    </select>
+                </div>
+                <div class="filter-group" style="justify-content: flex-end;">
+                    <label>&nbsp;</label>
+                    <button class="btn btn-primary" onclick="applyFilters()">Apply Filters</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results Info -->
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">Login Records</h2>
+                <p class="card-subtitle" id="resultsInfo">Loading...</p>
+            </div>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Username</th>
+                            <th>IP Address</th>
+                            <th>Country</th>
+                            <th>City</th>
+                            <th>Status</th>
+                            <th>Timestamp</th>
+                        </tr>
+                    </thead>
+                    <tbody id="logsTableBody">
+                        <tr>
+                            <td colspan="6" class="loading">
+                                <div class="spinner"></div>
+                                Loading logs...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <script src="js/api.js"></script>
+    <script>
+        let allCountries = [];
+
+        // Load initial data
+        async function loadLogs() {
+            try {
+                // Load all logs to get countries
+                const data = await API.getLoginLogs({ limit: 1000 });
+                
+                // Extract unique countries
+                allCountries = [...new Set(data.logs.map(log => log.country))].sort();
+                populateCountryFilter();
+                
+                // Display initial logs
+                displayLogs(data);
+
+            } catch (error) {
+                console.error('Error loading logs:', error);
+                showError('logsTableBody', 'Failed to load login logs. Make sure the backend is running.');
+            }
+        }
+
+        function populateCountryFilter() {
+            const select = document.getElementById('filterCountry');
+            allCountries.forEach(country => {
+                const option = document.createElement('option');
+                option.value = country;
+                option.textContent = country;
+                select.appendChild(option);
+            });
+        }
+
+        async function applyFilters() {
+            const username = document.getElementById('searchUsername').value;
+            const country = document.getElementById('filterCountry').value;
+            const status = document.getElementById('filterStatus').value;
+            const limit = document.getElementById('filterLimit').value;
+
+            const filters = {};
+            if (username) filters.username = username;
+            if (country) filters.country = country;
+            if (status) filters.status = status;
+            if (limit) filters.limit = limit;
+
+            try {
+                // Show loading
+                document.getElementById('logsTableBody').innerHTML = `
+                    <tr>
+                        <td colspan="6" class="loading">
+                            <div class="spinner"></div>
+                            Applying filters...
+                        </td>
+                    </tr>
+                `;
+
+                const data = await API.getLoginLogs(filters);
+                displayLogs(data);
+
+            } catch (error) {
+                console.error('Error applying filters:', error);
+                showError('logsTableBody', 'Failed to apply filters.');
+            }
+        }
+
+        function displayLogs(data) {
+            const tbody = document.getElementById('logsTableBody');
+            const resultsInfo = document.getElementById('resultsInfo');
+
+            resultsInfo.textContent = `Showing ${formatNumber(data.total)} records`;
+
+            if (data.logs.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6">No logs found matching your filters</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = data.logs.map(log => `
+                <tr>
+                    <td><strong>${log.username}</strong></td>
+                    <td><code>${log.ip}</code></td>
+                    <td>${log.country}</td>
+                    <td>${log.city}</td>
+                    <td><span class="badge ${log.status}">${log.status}</span></td>
+                    <td>${log.timestamp}</td>
+                </tr>
+            `).join('');
+        }
+
+        // Add enter key support for search
+        document.addEventListener('DOMContentLoaded', () => {
+            loadLogs();
+            
+            document.getElementById('searchUsername').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    applyFilters();
+                }
+            });
+        });
+    </script>
+</body>
+</html>

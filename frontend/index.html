@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SecureGuard - Login Security Analytics</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .landing-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 4rem 2rem;
+        }
+
+        .hero {
+            text-align: center;
+            padding: 4rem 0;
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero p {
+            font-size: 1.25rem;
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            margin: 4rem 0;
+        }
+
+        .feature-card {
+            background-color: var(--bg-secondary);
+            padding: 2rem;
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .feature-card h3 {
+            margin-bottom: 1rem;
+            color: var(--primary-color);
+        }
+
+        .cta-section {
+            text-align: center;
+            padding: 3rem 0;
+        }
+
+        .cta-button {
+            display: inline-block;
+            padding: 1rem 2.5rem;
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(99, 102, 241, 0.4);
+        }
+
+        .tech-stack {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            flex-wrap: wrap;
+            margin-top: 3rem;
+            padding: 2rem;
+            background-color: var(--bg-secondary);
+            border-radius: 12px;
+        }
+
+        .tech-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            background-color: var(--bg-tertiary);
+            border-radius: 8px;
+            color: var(--text-secondary);
+        }
+    </style>
+</head>
+<body>
+    <div class="landing-container">
+        <div class="hero">
+            <h1>🛡️ SecureGuard</h1>
+            <p>Advanced Login Security Analytics & Data Visualization Platform</p>
+            <p style="color: var(--text-muted); font-size: 1rem;">
+                Real-time threat detection • Geographic analysis • Bloom filter intelligence
+            </p>
+        </div>
+
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">📊</div>
+                <h3>Real-time Dashboard</h3>
+                <p style="color: var(--text-secondary);">
+                    Monitor login activities with interactive charts and live statistics. 
+                    Track success rates, failed attempts, and user behavior patterns.
+                </p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">🌍</div>
+                <h3>Geographic Analysis</h3>
+                <p style="color: var(--text-secondary);">
+                    Visualize login patterns across countries and cities. 
+                    Identify geographic anomalies and unusual access patterns.
+                </p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">🔍</div>
+                <h3>Bloom Filter Detection</h3>
+                <p style="color: var(--text-secondary);">
+                    Space-efficient IP blacklist checking using probabilistic data structures. 
+                    Fast suspicious IP detection with minimal memory footprint.
+                </p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">⚠️</div>
+                <h3>Anomaly Detection</h3>
+                <p style="color: var(--text-secondary);">
+                    Detect brute force attacks, impossible travel, off-hours logins, 
+                    and other suspicious patterns automatically.
+                </p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">📋</div>
+                <h3>Advanced Filtering</h3>
+                <p style="color: var(--text-secondary);">
+                    Search and filter login logs by username, country, status, and more. 
+                    Export data for detailed analysis.
+                </p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">🚀</div>
+                <h3>Flask Backend API</h3>
+                <p style="color: var(--text-secondary);">
+                    RESTful API built with Python Flask. Clean endpoints for data access, 
+                    analysis, and visualization.
+                </p>
+            </div>
+        </div>
+
+        <div class="cta-section">
+            <h2 style="margin-bottom: 1.5rem;">Ready to Explore?</h2>
+            <a href="dashboard.html" class="cta-button">Launch Dashboard →</a>
+        </div>
+
+        <div class="tech-stack">
+            <div class="tech-item">🐍 Python Flask</div>
+            <div class="tech-item">🎨 Chart.js</div>
+            <div class="tech-item">📊 Pandas</div>
+            <div class="tech-item">🎯 Bloom Filter</div>
+            <div class="tech-item">🔒 Security Analytics</div>
+        </div>
+
+        <div style="text-align: center; margin-top: 3rem; padding: 2rem; color: var(--text-muted);">
+            <p>
+                <strong>Project Features:</strong> Full-stack application • CSV dataset integration • 
+                Real-time analytics • Security threat detection • Modern UI/UX
+            </p>
+            <p style="margin-top: 1rem;">
+                Built for educational purposes • Lab-ready project structure • Easy to run and customize
+            </p>
+        </div>
+    </div>
+</body>
+</html>
