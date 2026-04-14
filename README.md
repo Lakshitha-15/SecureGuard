@@ -72,13 +72,6 @@ secureguard_project/
 └── README.md                     # This file
 ```
 
-## 🚀 Quick Start Guide
-
-### Prerequisites
-- Python 3.8 or higher
-- Modern web browser (Chrome, Firefox, Edge)
-- VS Code (recommended) or any code editor
-
 ### Installation Steps
 
 #### 1. Navigate to Backend Directory
@@ -91,24 +84,9 @@ cd secureguard_project/backend
 pip install -r requirements.txt
 ```
 
-Or install individually:
-```bash
-pip install Flask==3.0.0
-pip install flask-cors==4.0.0
-pip install pandas==2.1.4
-```
-
 #### 3. Start the Flask Backend
 ```bash
 python app.py
-```
-
-You should see:
-```
-✅ Loaded 800 records from CSV
-✅ Added 50 suspicious IPs to Bloom Filter
-🚀 SecureGuard Backend Starting...
-📊 API running on http://localhost:5000
 ```
 
 #### 4. Open Frontend
@@ -119,61 +97,6 @@ Open any of these files in your browser:
 Or use VS Code Live Server:
 1. Right-click on `frontend/index.html`
 2. Select "Open with Live Server"
-
-## 📡 API Endpoints
-
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/api/load-data` | GET | Check if data is loaded |
-| `/api/stats` | GET | Get dashboard statistics |
-| `/api/geo-analysis` | GET | Get geographic analysis |
-| `/api/login-logs` | GET | Get login logs (with filters) |
-| `/api/bloom-check` | POST | Check if IP is suspicious |
-| `/api/anomaly-detect` | GET | Get all detected anomalies |
-| `/api/recent-alerts` | GET | Get recent security alerts |
-| `/api/timeline` | GET | Get login timeline data |
-| `/api/user-analysis/<username>` | GET | Get user-specific analysis |
-
-### Example API Usage
-
-```bash
-# Get statistics
-curl http://localhost:5000/api/stats
-
-# Get login logs (filtered)
-curl "http://localhost:5000/api/login-logs?country=India&status=failed&limit=50"
-
-# Check IP with Bloom Filter
-curl -X POST http://localhost:5000/api/bloom-check \
-  -H "Content-Type: application/json" \
-  -d '{"ip": "192.168.1.1"}'
-```
-
-## 🎨 Features Breakdown
-
-### 1. Dashboard (`dashboard.html`)
-- **Stats Cards**: Total logins, success rate, failed logins, unique users
-- **Timeline Chart**: Line chart showing success vs failed logins over time
-- **Status Distribution**: Pie chart of overall login status
-- **Recent Alerts**: Real-time security alerts
-- **Recent Activity Table**: Latest 20 login attempts
-
-### 2. Geographic Analysis (`geo.html`)
-- **Country Bar Chart**: Top countries by login count
-- **Success/Failed by Country**: Grouped bar chart
-- **Country Statistics Table**: Detailed breakdown with success rates
-- **City Statistics Table**: Top 20 cities
-
-### 3. Login Logs (`logs.html`)
-- **Advanced Filters**: Username search, country filter, status filter, result limit
-- **Searchable Table**: All login records with sorting
-- **Real-time Results**: Dynamic filtering without page reload
-
-### 4. Bloom Filter (`bloom.html`)
-- **IP Checker**: Input any IP to check if it's in the blacklist
-- **Bloom Filter Explanation**: Educational content about the algorithm
-- **Anomaly Detection Results**: All detected security threats
-- **Anomaly Charts**: Distribution and severity breakdown
 
 ## 🔍 Key Algorithms
 
@@ -207,75 +130,6 @@ curl -X POST http://localhost:5000/api/bloom-check \
    - Detects login attempts within 60 seconds
    - Severity: Medium
 
-## 🎓 Educational Value
-
-This project demonstrates:
-- ✅ Full-stack development (Python + JavaScript)
-- ✅ RESTful API design
-- ✅ Data visualization with Chart.js
-- ✅ CSV data processing with Pandas
-- ✅ Probabilistic data structures (Bloom Filter)
-- ✅ Security analytics and threat detection
-- ✅ Frontend-backend integration
-- ✅ Modular code organization
-
-## 🛠️ Customization
-
-### Adding More Data
-Replace `backend/data/login_logs.csv` with your own CSV file. Ensure it has these columns:
-- `username`
-- `ip`
-- `country`
-- `city`
-- `status` (success/failed)
-- `timestamp` (YYYY-MM-DD HH:MM:SS)
-
-### Modifying Bloom Filter
-Edit `backend/utils/bloom.py`:
-```python
-# Change size and hash count
-bloom_filter = BloomFilter(size=2000, hash_count=5)
-```
-
-### Adjusting Anomaly Thresholds
-Edit `backend/utils/anomaly.py`:
-```python
-# Example: Change brute force threshold
-if count >= 5:  # Changed from 3 to 5
-```
-
-## 🐛 Troubleshooting
-
-### Backend won't start
-- **Error**: `ModuleNotFoundError: No module named 'flask'`
-  - **Solution**: Run `pip install -r requirements.txt`
-
-- **Error**: `Address already in use`
-  - **Solution**: Port 5000 is occupied. Change port in `app.py`:
-    ```python
-    app.run(debug=True, port=5001)  # Use different port
-    ```
-
-### Frontend shows errors
-- **Error**: `Failed to fetch`
-  - **Solution**: Make sure backend is running on `http://localhost:5000`
-  
-- **Error**: CORS errors in console
-  - **Solution**: Backend has `flask-cors` installed, reinstall if needed
-
-### Charts not displaying
-- **Error**: Charts are blank
-  - **Solution**: Check browser console for errors. Ensure Chart.js CDN is accessible.
-
-## 📊 Dataset Statistics
-
-- **Total Records**: 800
-- **Unique Users**: 10
-- **Countries**: 8 (India, USA, UK, Germany, Canada, Australia, etc.)
-- **Cities**: 15+
-- **Date Range**: March 2026
-- **Success Rate**: ~70-80%
-
 ## 🔐 Security Features
 
 1. **Bloom Filter IP Blacklist**: Space-efficient suspicious IP detection
@@ -284,22 +138,6 @@ if count >= 5:  # Changed from 3 to 5
 4. **Geographic Anomalies**: Flags unusual country access patterns
 5. **Off-Hours Monitoring**: Detects suspicious timing patterns
 6. **Real-time Alerts**: Immediate notification of security events
-
-## 📈 Performance
-
-- **API Response Time**: < 100ms for most endpoints
-- **Frontend Load Time**: < 2 seconds
-- **Bloom Filter Lookup**: O(1) constant time
-- **Data Processing**: Efficient Pandas operations
-- **Memory Usage**: Minimal (~50MB for 800 records)
-
-## 🎯 Use Cases
-
-- **Academic Projects**: Perfect for data visualization lab assignments
-- **Security Training**: Learn about security analytics
-- **Portfolio Projects**: Showcase full-stack development skills
-- **Learning Tool**: Understand Bloom filters and anomaly detection
-- **Interview Prep**: Demonstrate system design and API development
 
 ## 📝 Future Enhancements
 
@@ -333,37 +171,3 @@ Frontend:
 - **Python**: PEP 8 compliant
 - **JavaScript**: ES6+ features
 - **CSS**: BEM-like naming convention
-
-## 📄 License
-
-This project is created for educational purposes. Feel free to use and modify for your learning needs.
-
-## 🙏 Acknowledgments
-
-- **Chart.js**: Beautiful charts and visualizations
-- **Flask**: Lightweight Python web framework
-- **Pandas**: Powerful data analysis library
-
-## 📞 Support
-
-If you encounter issues:
-1. Check the troubleshooting section
-2. Verify all dependencies are installed
-3. Ensure backend is running before accessing frontend
-4. Check browser console for errors
-
-## 🎉 Quick Test
-
-After setup, verify everything works:
-1. ✅ Backend starts without errors
-2. ✅ Visit `http://localhost:5000/api/stats` - should return JSON
-3. ✅ Open `frontend/dashboard.html` - should show charts and data
-4. ✅ Navigate to all 4 pages - should load without errors
-5. ✅ Try filtering on logs page
-6. ✅ Check an IP on bloom filter page
-
----
-
-**Built with ❤️ for learning and education**
-
-Version: 1.0.0 | Last Updated: March 2026
